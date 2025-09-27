@@ -1,22 +1,12 @@
-import os
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils.executor import start_webhook
-from flask import Flask, request
+from aiogram import Bot, Dispatcher, executor, types
+from flask import Flask
+from threading import Thread
 
-# 🔑 Токен від BotFather
+# 🔑 Встав сюди свій токен від BotFather
 API_TOKEN = "8065465326:AAEV8aYGEEgDyWZwPZikBJIwl7LkB99TU5I"
 
-# 📡 Дані для webhook
-WEBHOOK_HOST = "https://dashboard.render.com/web/srv-d3bpkvt6ubrc73e9tu8g/events"  # заміни на свій домен Render
-WEBHOOK_PATH = f"/webhook/{API_TOKEN}"
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-
-# 🔧 Налаштування сервера
-WEBAPP_HOST = "0.0.0.0"
-WEBAPP_PORT = int(os.getenv("PORT", 8080))
-
-# список айді адмінів
-ADMINS = [7618560125]
+# список айді адмінів (тільки вони можуть міняти дз або банити)
+ADMINS = [7618560125]  # заміни на свій Telegram ID
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
@@ -37,8 +27,9 @@ async def block_banned(message: types.Message):
 
 
 # ---------------------------
-# Команди
+# Команди бота
 # ---------------------------
+
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -65,6 +56,9 @@ async def set_homework(message: types.Message):
         await message.answer("⛔ У тебе нема прав міняти ДЗ!")
 
 
+# ---------------------------
+# Команда /ban
+# ---------------------------
 @dp.message_handler(commands=["ban"])
 async def ban_user(message: types.Message):
     if message.from_user.id not in ADMINS:
@@ -79,6 +73,9 @@ async def ban_user(message: types.Message):
     await message.answer(f"✅ Користувач {user_id} забанений.")
 
 
+# ---------------------------
+# Команда /unban
+# ---------------------------
 @dp.message_handler(commands=["unban"])
 async def unban_user(message: types.Message):
     if message.from_user.id not in ADMINS:
@@ -97,27 +94,25 @@ async def unban_user(message: types.Message):
 
 
 # ---------------------------
-# Webhook хендлери
+# Веб-сервер (щоб Render/Replit не засинав)
 # ---------------------------
-async def on_startup(dp):
-    # ставимо webhook
-    await bot.set_webhook(WEBHOOK_URL)
+app = Flask('')
 
-async def on_shutdown(dp):
-    # прибираємо webhook
-    await bot.delete_webhook()
+@app.route('/')
+def home():
+    return "Я живий!"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
 
 
 # ---------------------------
-# Запуск бота через webhook
+# Запуск бота
 # ---------------------------
 if __name__ == "__main__":
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        skip_updates=True,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+    keep_alive()   # запускаємо веб-сервер
+    executor.start_polling(dp, skip_updates=True)  # запускаємо бота
