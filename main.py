@@ -1,3 +1,4 @@
+import json
 from aiogram import Bot, Dispatcher, executor, types
 from flask import Flask
 from threading import Thread
@@ -5,7 +6,7 @@ from threading import Thread
 # 🔑 Встав сюди свій токен від BotFather
 API_TOKEN = "8065465326:AAEV8aYGEEgDyWZwPZikBJIwl7LkB99TU5I"
 
-# список айді адмінів (тільки вони можуть міняти дз або банити)
+# список айді адмінів
 ADMINS = [7618560125]  # заміни на свій Telegram ID
 
 bot = Bot(token=API_TOKEN)
@@ -14,8 +15,23 @@ dp = Dispatcher(bot)
 # тут зберігається домашнє завдання
 homework_text = "Домашнє завдання ще не встановлено ❌"
 
-# список забанених користувачів
-banned_users = set()
+# ---------------------------
+# Бан-лист (з файлу)
+# ---------------------------
+BAN_FILE = "banlist.json"
+
+def load_bans():
+    try:
+        with open(BAN_FILE, "r", encoding="utf-8") as f:
+            return set(json.load(f))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return set()
+
+def save_bans():
+    with open(BAN_FILE, "w", encoding="utf-8") as f:
+        json.dump(list(banned_users), f)
+
+banned_users = load_bans()
 
 
 # ---------------------------
@@ -70,6 +86,7 @@ async def ban_user(message: types.Message):
 
     user_id = int(args)
     banned_users.add(user_id)
+    save_bans()
     await message.answer(f"✅ Користувач {user_id} забанений.")
 
 
@@ -88,6 +105,7 @@ async def unban_user(message: types.Message):
     user_id = int(args)
     if user_id in banned_users:
         banned_users.remove(user_id)
+        save_bans()
         await message.answer(f"✅ Користувач {user_id} розбанений.")
     else:
         await message.answer("ℹ️ Цей користувач і так не забанений.")
