@@ -5,7 +5,7 @@ from threading import Thread
 # 🔑 Встав сюди свій токен від BotFather
 API_TOKEN = "8065465326:AAEV8aYGEEgDyWZwPZikBJIwl7LkB99TU5I"
 
-# список айді адмінів (тільки вони можуть міняти дз)
+# список айді адмінів (тільки вони можуть міняти дз або банити)
 ADMINS = [7618560125]  # заміни на свій Telegram ID
 
 bot = Bot(token=API_TOKEN)
@@ -13,6 +13,17 @@ dp = Dispatcher(bot)
 
 # тут зберігається домашнє завдання
 homework_text = "Домашнє завдання ще не встановлено ❌"
+
+# список забанених користувачів
+banned_users = set()
+
+
+# ---------------------------
+# Фільтр: ігнор забанених
+# ---------------------------
+@dp.message_handler(lambda message: message.from_user.id in banned_users)
+async def block_banned(message: types.Message):
+    await message.answer("⛔ Ти забанений у цьому боті!")
 
 
 # ---------------------------
@@ -46,7 +57,44 @@ async def set_homework(message: types.Message):
 
 
 # ---------------------------
-# Веб-сервер (щоб Replit не засинав)
+# Команда /ban
+# ---------------------------
+@dp.message_handler(commands=["ban"])
+async def ban_user(message: types.Message):
+    if message.from_user.id not in ADMINS:
+        return await message.answer("⛔ У тебе нема прав!")
+
+    args = message.get_args()
+    if not args.isdigit():
+        return await message.answer("⚠️ Використовуй так: /ban userid")
+
+    user_id = int(args)
+    banned_users.add(user_id)
+    await message.answer(f"✅ Користувач {user_id} забанений.")
+
+
+# ---------------------------
+# Команда /unban
+# ---------------------------
+@dp.message_handler(commands=["unban"])
+async def unban_user(message: types.Message):
+    if message.from_user.id not in ADMINS:
+        return await message.answer("⛔ У тебе нема прав!")
+
+    args = message.get_args()
+    if not args.isdigit():
+        return await message.answer("⚠️ Використовуй так: /unban userid")
+
+    user_id = int(args)
+    if user_id in banned_users:
+        banned_users.remove(user_id)
+        await message.answer(f"✅ Користувач {user_id} розбанений.")
+    else:
+        await message.answer("ℹ️ Цей користувач і так не забанений.")
+
+
+# ---------------------------
+# Веб-сервер (щоб Render/Replit не засинав)
 # ---------------------------
 app = Flask('')
 
