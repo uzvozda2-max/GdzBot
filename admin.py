@@ -3,7 +3,7 @@ from aiogram.dispatcher.filters import Command
 from loader import dp
 import database as db
 
-MAIN_ADMIN_ID = 123456789  # 🔴 заміни на свій ID
+MAIN_ADMIN_ID = 7618560125  # 🔴 заміни на свій ID
 
 # додати адміна
 @dp.message_handler(Command("addAdmin"))
