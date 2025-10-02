@@ -4,7 +4,6 @@ import database as db
 
 # імпортуємо хендлери
 import admin
-import banlist
 import dz
 import loader
 import ban
