@@ -9,10 +9,10 @@ import loader
 import ban
 import database
 
+
 async def on_startup(_):
     print("✅ Бот запущений")
     db.init_db()
-
 
 if __name__ == "__main__":
     db.init_db()
