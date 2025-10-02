@@ -3,9 +3,13 @@ from loader import dp
 import database as db
 
 # імпортуємо хендлери
-import handlers.admin
-import handlers.ban
-import handlers.dz
+import admin
+import banlist
+import dz
+import loader
+import ban
+import database
+
 
 def on_startup(_):
     print("✅ Бот запущений")
