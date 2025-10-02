@@ -6,6 +6,7 @@ import database as db
 import admin
 import dz
 import ban
+import flask
 
 # --- Render settings ---
 WEBHOOK_HOST = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}"
