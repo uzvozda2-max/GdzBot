@@ -5,7 +5,7 @@ from flask import Flask
 from threading import Thread
 
 # 🔑 Токен від BotFather
-API_TOKEN = "ТУТ_ТОКЕН"
+API_TOKEN = "8065465326:AAEV8aYGEEgDyWZwPZikBJIwl7LkB99TU5I"
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
@@ -24,7 +24,7 @@ def save_json(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 # завантажуємо дані
-ADMINS = load_json("admins.json", [7618560125])  # твій айді тут
+ADMINS = load_json("admins.json", [7618560125] , [6964713379])  # твій айді тут
 BANNED = load_json("banned.json", [])
 if os.path.exists("dz.txt"):
     with open("dz.txt", "r", encoding="utf-8") as f:
