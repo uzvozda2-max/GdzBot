@@ -139,7 +139,7 @@ async def set_admin(message: types.Message):
             if user_id not in ADMINS:
                 ADMINS.append(user_id)
                 save_json("admins.json", ADMINS)
-                                await message.answer(f"✅ Користувач {user_id} тепер адмін")
+                await message.answer(f"✅ Користувач {user_id} тепер адмін")
             else:
                 await message.answer("⚠️ Він вже адмін")
         except:
