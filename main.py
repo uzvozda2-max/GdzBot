@@ -5,7 +5,7 @@ from flask import Flask
 from threading import Thread
 
 # 🔑 Токен від BotFather
-API_TOKEN = "8065465326:AAEV8aYGEEgDyWZwPZikBJIwl7LkB99TU5I"
+API_TOKEN = "8065465326:AAEV8aYIGEEgDyWZwPZikBJIwl7LkB99TU5"
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
@@ -26,27 +26,31 @@ def save_json(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 # завантажуємо дані
-ADMINS = load_json("admins.json", [7618560125, 6964713379])  # твій айді тут
+ADMINS = load_json("admins.json", [7618560125])  # заміни на свій ID
 BANNED = load_json("banned.json", [])
+
 if os.path.exists("dz.txt"):
     with open("dz.txt", "r", encoding="utf-8") as f:
         homework_text = f.read().strip()
 else:
     homework_text = "Домашнє завдання ще не встановлено ❌"
 
+if os.path.exists("news.txt"):
+    with open("news.txt", "r", encoding="utf-8") as f:
+        news_text = f.read().strip()
+else:
+    news_text = "Новини ще не встановлені ❌"
 
 # ---------------------------
 # Команди
 # ---------------------------
-
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
     if message.from_user.id in BANNED:
         return await message.answer("⛔ Тебе забанено!")
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add("📚 Домашнє завдання")
+    keyboard.row("📚 Домашнє завдання", "📰 Новини")
     await message.answer("Привіт! 👋\nЩо тобі треба?", reply_markup=keyboard)
-
 
 @dp.message_handler(lambda message: message.text == "📚 Домашнє завдання")
 async def show_homework(message: types.Message):
@@ -54,6 +58,11 @@ async def show_homework(message: types.Message):
         return await message.answer("⛔ Тебе забанено!")
     await message.answer(f"📌 Домашнє завдання:\n\n{homework_text}")
 
+@dp.message_handler(lambda message: message.text == "📰 Новини")
+async def show_news(message: types.Message):
+    if message.from_user.id in BANNED:
+        return await message.answer("⛔ Тебе забанено!")
+    await message.answer(f"📰 Новини:\n\n{news_text}")
 
 @dp.message_handler(commands=["setdz"])
 async def set_homework(message: types.Message):
@@ -70,11 +79,24 @@ async def set_homework(message: types.Message):
     else:
         await message.answer("⛔ У тебе нема прав міняти ДЗ!")
 
+@dp.message_handler(commands=["setnews"])
+async def set_news(message: types.Message):
+    global news_text
+    if message.from_user.id in ADMINS:
+        args = message.get_args()
+        if args:
+            news_text = args
+            with open("news.txt", "w", encoding="utf-8") as f:
+                f.write(news_text)
+            await message.answer("✅ Новини оновлено!")
+        else:
+            await message.answer("⚠️ Напиши так: /setnews Текст_новин")
+    else:
+        await message.answer("⛔ У тебе нема прав міняти новини!")
 
 # ---------------------------
 # Адмінські команди
 # ---------------------------
-
 @dp.message_handler(commands=["ban"])
 async def ban_user(message: types.Message):
     if message.from_user.id in ADMINS:
@@ -91,7 +113,6 @@ async def ban_user(message: types.Message):
             await message.answer("⚠️ Використовуй так: /ban user_id")
     else:
         await message.answer("⛔ У тебе нема прав банити!")
-
 
 @dp.message_handler(commands=["unban"])
 async def unban_user(message: types.Message):
@@ -110,7 +131,6 @@ async def unban_user(message: types.Message):
     else:
         await message.answer("⛔ У тебе нема прав розбанювати!")
 
-
 @dp.message_handler(commands=["setadmin"])
 async def set_admin(message: types.Message):
     if message.from_user.id in ADMINS:
@@ -127,7 +147,6 @@ async def set_admin(message: types.Message):
             await message.answer("⚠️ Використовуй так: /setadmin user_id")
     else:
         await message.answer("⛔ У тебе нема прав додавати адмінів!")
-
 
 @dp.message_handler(commands=["deleteadmin"])
 async def delete_admin(message: types.Message):
@@ -146,11 +165,9 @@ async def delete_admin(message: types.Message):
     else:
         await message.answer("⛔ У тебе нема прав видаляти адмінів!")
 
-
 @dp.message_handler(commands=["GetUserId"])
 async def get_user_id(message: types.Message):
     await message.answer(f"🆔 Твій Telegram ID: {message.from_user.id}")
-
 
 # ---------------------------
 # Веб-сервер для Render/Replit
@@ -167,7 +184,6 @@ def run():
 def keep_alive():
     t = Thread(target=run)
     t.start()
-
 
 # ---------------------------
 # Запуск бота
